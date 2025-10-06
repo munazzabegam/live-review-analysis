@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Review Analyzer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body style="font-family:sans-serif; padding:30px;">
+  <h2>AI Product Review Analyzer 🧠</h2>
+  <input type="text" id="url" placeholder="Paste Flipkart product URL" style="width:60%;padding:8px;">
+  <button onclick="analyze()">Analyze</button>
+  
+  <h3 id="summary"></h3>
+  <canvas id="chart" width="400" height="200"></canvas>
+
+  <script>
+    async function analyze() {
+      const url = document.getElementById("url").value;
+      const res = await fetch("http://127.0.0.1:5000/analyze_url", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ url })
+      });
+      const data = await res.json();
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      document.getElementById("summary").innerText = 
+        `Total Reviews: ${data.total_reviews}, Avg Sentiment: ${data.average_polarity.toFixed(2)}`;
+
+      const ctx = document.getElementById("chart");
+      new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Positive', 'Neutral', 'Negative'],
+          datasets: [{
+            data: [
+              data.summary.positive,
+              data.summary.neutral,
+              data.summary.negative
+            ],
+          }]
+        }
+      });
+    }
+  </script>
+</body>
+</html>
